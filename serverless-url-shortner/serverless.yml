@@ -1,0 +1,15 @@
+service: serverless-url-shortener
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1 # Change this if your AWS region is different
+
+functions:
+  shorten:
+    handler: src/handlers/shorten.shorten
+    events:
+      - httpApi:
+          method: POST
+          path: /shorten          
+
