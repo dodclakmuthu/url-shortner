@@ -3,7 +3,26 @@ service: serverless-url-shortener
 provider:
   name: aws
   runtime: nodejs18.x
-  region: us-east-1 # Change this if your AWS region is different
+  region: us-east-1 # Change if needed
+  stage: ${opt:stage, 'dev'}
+  environment:
+    DYNAMODB_TABLE: short_urls_${self:provider.stage}
+    SHORT_BASE_URL: ${env:SHORT_BASE_URL}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:CreateTable
+        - dynamodb:UpdateTable
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:Query
+        - dynamodb:UpdateItem
+      Resource: "arn:aws:dynamodb:us-east-1:*:table/short_urls_${self:provider.stage}"
+
+# custom:
+#   defaultApiGatewayUrl: 
+#     Fn::Sub: "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/${env:STAGE}/"
 
 functions:
   shorten:
@@ -11,5 +30,24 @@ functions:
     events:
       - httpApi:
           method: POST
-          path: /shorten          
+          path: /shorten
+  redirect:
+    handler: src/handlers/redirect.redirect
+    events:
+      - httpApi:
+          method: GET
+          path: /{shortId}
 
+resources:
+  Resources:
+    ShortUrlsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: short_urls_${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
