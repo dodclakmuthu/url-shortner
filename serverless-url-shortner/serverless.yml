@@ -1,3 +1,5 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: mark1024
 service: serverless-url-shortener
 
 provider:
@@ -19,10 +21,20 @@ provider:
         - dynamodb:Query
         - dynamodb:UpdateItem
       Resource: "arn:aws:dynamodb:us-east-1:*:table/short_urls_${self:provider.stage}"
+custom:
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: false # Data is lost when the server stops
+      migrate: true  # Automatically create tables
+      seed: true
+      dbPath: .dynamodb # Save data to a local file
 
-# custom:
-#   defaultApiGatewayUrl: 
-#     Fn::Sub: "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/${env:STAGE}/"
+plugins:
+  - serverless-offline
+  - serverless-dynamodb-local
 
 functions:
   shorten:
@@ -51,3 +63,5 @@ resources:
           - AttributeName: id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+
+
