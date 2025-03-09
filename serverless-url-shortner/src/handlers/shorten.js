@@ -1,5 +1,6 @@
 require('dotenv').config();
 const AWS = require('aws-sdk');
+const crypto = require('crypto');
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 async function insertUrl(shortenedId, originalUrl) {
@@ -27,7 +28,7 @@ async function generateUniqueShortId() {
     let exists = true;
 
     while (exists) {
-        id = Math.random().toString(36).substring(2, 7);
+        id = crypto.randomBytes(3).toString('hex');
         const params = {
             TableName: process.env.DYNAMODB_TABLE,
             Key: { id }

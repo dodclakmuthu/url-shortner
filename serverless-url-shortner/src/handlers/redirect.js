@@ -17,8 +17,8 @@ async function incrementClickCount(shortenedId) {
     const params = {
         TableName: process.env.DYNAMODB_TABLE,
         Key: { id: shortenedId },
-        UpdateExpression: "SET clickCount = clickCount + :inc",
-        ExpressionAttributeValues: { ":inc": 1 },
+        UpdateExpression: "SET clickCount = if_not_exists(clickCount, :zero) + :inc",
+        ExpressionAttributeValues: { ":zero": 0, ":inc": 1 },
     };
 
     await docClient.update(params).promise();
