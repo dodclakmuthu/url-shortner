@@ -11,6 +11,10 @@ async function insertUrl(shortenedId, originalUrl) {
             originalUrl: originalUrl,
             createdAt: new Date().toISOString(),  // Timestamp
             clickCount: 0,  // Initially set to 0
+            clickedByDate: {
+                // Example: { "2021-01-01": 5, "2021-01-02": 3}
+                
+            },  // Object to store click count by date
             expiresAt: null,  // Optionally set an expiration time
         },
     };

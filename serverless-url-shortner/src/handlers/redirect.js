@@ -14,15 +14,39 @@ async function getUrl(shortenedId) {
 }
 
 async function incrementClickCount(shortenedId) {
-    const params = {
-        TableName: process.env.DYNAMODB_TABLE,
-        Key: { id: shortenedId },
-        UpdateExpression: "SET clickCount = if_not_exists(clickCount, :zero) + :inc",
-        ExpressionAttributeValues: { ":zero": 0, ":inc": 1 },
-    };
+    const today = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
 
-    await docClient.update(params).promise();
+    try {
+        // Step 1: Ensure `clickedByDate` exists
+        await docClient.update({
+            TableName: process.env.DYNAMODB_TABLE,
+            Key: { id: shortenedId },
+            UpdateExpression: "SET clickedByDate = if_not_exists(clickedByDate, :emptyMap)",
+            ExpressionAttributeValues: {
+                ":emptyMap": {} // Initialize if it doesn't exist
+            }
+        }).promise();
+
+        // Step 2: Increment click count and update today's date count
+        await docClient.update({
+            TableName: process.env.DYNAMODB_TABLE,
+            Key: { id: shortenedId },
+            UpdateExpression: "SET clickCount = if_not_exists(clickCount, :zero) + :inc, clickedByDate.#date = if_not_exists(clickedByDate.#date, :zero) + :inc",
+            ExpressionAttributeNames: {
+                "#date": today
+            },
+            ExpressionAttributeValues: {
+                ":inc": 1,
+                ":zero": 0
+            }
+        }).promise();
+
+        console.log(`Click count updated for ${shortenedId} on ${today}`);
+    } catch (error) {
+        console.error("Error updating click count:", error);
+    }
 }
+
 
 module.exports.redirect = async (event) => {
     try {
