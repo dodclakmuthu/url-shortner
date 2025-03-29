@@ -1,3 +1,5 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: mark1024
 service: serverless-url-shortener
 
 provider:
@@ -6,7 +8,7 @@ provider:
   region: us-east-1 # Change if needed
   stage: ${opt:stage, 'dev'}
   environment:
-    DYNAMODB_TABLE: short_urls_${self:provider.stage}
+    DYNAMODB_TABLE: ${env:DYNAMODB_TABLE}
     SHORT_BASE_URL: ${env:SHORT_BASE_URL}
   iamRoleStatements:
     - Effect: Allow
@@ -18,12 +20,11 @@ provider:
         - dynamodb:GetItem
         - dynamodb:Query
         - dynamodb:UpdateItem
-      Resource: "arn:aws:dynamodb:us-east-1:*:table/short_urls_${self:provider.stage}"
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE}"
 
-# custom:
-#   defaultApiGatewayUrl: 
-#     Fn::Sub: "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/${env:STAGE}/"
-
+plugins:
+  - serverless-offline
+  # - serverless-dynamodb-local
 functions:
   shorten:
     handler: src/handlers/shorten.shorten
@@ -43,7 +44,7 @@ resources:
     ShortUrlsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: short_urls_${self:provider.stage}
+        TableName: ${env:DYNAMODB_TABLE}
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
@@ -51,3 +52,5 @@ resources:
           - AttributeName: id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+
+
