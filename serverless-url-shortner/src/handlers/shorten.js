@@ -5,7 +5,7 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 
 async function insertUrl(shortenedId, originalUrl) {
     const params = {
-        TableName: process.env.DYNAMODB_TABLE,
+        TableName: process.env.DYNAMODB_TABLE_SHORTEN_URL,
         Item: {
             id: shortenedId,
             originalUrl: originalUrl,
@@ -34,7 +34,7 @@ async function generateUniqueShortId() {
     while (exists) {
         id = crypto.randomBytes(3).toString('hex');
         const params = {
-            TableName: process.env.DYNAMODB_TABLE,
+            TableName: process.env.DYNAMODB_TABLE_SHORTEN_URL,
             Key: { id }
         };
 

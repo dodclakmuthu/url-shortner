@@ -8,7 +8,7 @@ provider:
   region: us-east-1 # Change if needed
   stage: ${opt:stage, 'dev'}
   environment:
-    DYNAMODB_TABLE: ${env:DYNAMODB_TABLE}
+    DYNAMODB_TABLE_SHORTEN_URL: ${env:DYNAMODB_TABLE_SHORTEN_URL}
     SHORT_BASE_URL: ${env:SHORT_BASE_URL}
   iamRoleStatements:
     - Effect: Allow
@@ -20,7 +20,7 @@ provider:
         - dynamodb:GetItem
         - dynamodb:Query
         - dynamodb:UpdateItem
-      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE}"
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_SHORTEN_URL}"
 
 plugins:
   - serverless-offline
@@ -44,13 +44,65 @@ resources:
     ShortUrlsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${env:DYNAMODB_TABLE}
+        TableName: ${env:DYNAMODB_TABLE_SHORTEN_URL}
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+  resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${env:DYNAMODB_TABLE_USERS}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S # String (Primary Key)
+          - AttributeName: email
+            AttributeType: S
+          - AttributeName: phoneNumber
+            AttributeType: S
+          - AttributeName: fname
+            AttributeType: S
+          - AttributeName: lname
+            AttributeType: S
+          - AttributeName: address1
+            AttributeType: S
+          - AttributeName: address2
+            AttributeType: S
+          - AttributeName: state
+            AttributeType: S
+          - AttributeName: country
+            AttributeType: S
+          - AttributeName: zip_code
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH # Primary Key
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        GlobalSecondaryIndexes:
+          - IndexName: EmailIndex
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+          - IndexName: PhoneNumberIndex
+            KeySchema:
+              - AttributeName: phoneNumber
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
         BillingMode: PAY_PER_REQUEST
 
 
