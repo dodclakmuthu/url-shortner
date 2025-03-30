@@ -1,31 +1,9 @@
 require('dotenv').config();
 const AWS = require('aws-sdk');
 const crypto = require('crypto');
-const docClient = new AWS.DynamoDB.DocumentClient();
 
-async function insertUrl(shortenedId, originalUrl) {
-    const params = {
-        TableName: process.env.DYNAMODB_TABLE,
-        Item: {
-            id: shortenedId,
-            originalUrl: originalUrl,
-            createdAt: new Date().toISOString(),  // Timestamp
-            clickCount: 0,  // Initially set to 0
-            clickedByDate: {
-                // Example: { "2021-01-01": 5, "2021-01-02": 3}
-                
-            },  // Object to store click count by date
-            expiresAt: null,  // Optionally set an expiration time
-        },
-    };
+const { insertUrl, getUrl } = require('../models/urlModel');
 
-    try {
-        await docClient.put(params).promise();
-        console.log('Item inserted successfully');
-    } catch (error) {
-        console.error('Error inserting item:', error);
-    }
-}
 
 async function generateUniqueShortId() {
     let id;
@@ -33,13 +11,8 @@ async function generateUniqueShortId() {
 
     while (exists) {
         id = crypto.randomBytes(3).toString('hex');
-        const params = {
-            TableName: process.env.DYNAMODB_TABLE,
-            Key: { id }
-        };
-
-        const result = await docClient.get(params).promise();
-        exists = result.Item ? true : false;
+        const result = await getUrl(id);
+        exists = result ? true : false;
     }
 
     return id;
