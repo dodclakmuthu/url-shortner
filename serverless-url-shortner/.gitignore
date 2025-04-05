@@ -1,4 +1,23 @@
-node_modules
-.serverless
-.git-credentials-personal
+node_modules/
+
+# Serverless Framework files
+.serverless/
+.webpack/
+
+# Local environment variables
 .env
+
+# Logs
+logs/
+*.log
+
+# IDE files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
