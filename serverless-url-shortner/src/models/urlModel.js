@@ -65,6 +65,7 @@ async function incrementClickCount(shortenedId) {
         console.log(`Click count updated for ${shortenedId} on ${today}`);
     } catch (error) {
         console.error("Error updating click count:", error);
+        throw new Error("Database update failed"); 
     }
 }
 
