@@ -40,7 +40,7 @@ async function incrementClickCount(shortenedId) {
     try {
         // Step 1: Ensure `clickedByDate` exists
         await docClient.update({
-            TableName: process.env.DYNAMODB_TABLE,
+            TableName: TableName,
             Key: { id: shortenedId },
             UpdateExpression: "SET clickedByDate = if_not_exists(clickedByDate, :emptyMap)",
             ExpressionAttributeValues: {
@@ -50,7 +50,7 @@ async function incrementClickCount(shortenedId) {
 
         // Step 2: Increment click count and update today's date count
         await docClient.update({
-            TableName: process.env.DYNAMODB_TABLE,
+            TableName: TableName,
             Key: { id: shortenedId },
             UpdateExpression: "SET clickCount = if_not_exists(clickCount, :zero) + :inc, clickedByDate.#date = if_not_exists(clickedByDate.#date, :zero) + :inc",
             ExpressionAttributeNames: {
