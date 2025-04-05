@@ -1,6 +1,6 @@
 const AWS = require("aws-sdk");
 const docClient = new AWS.DynamoDB.DocumentClient();
-const TableName = process.env.DYNAMODB_TABLE;
+const TableName = process.env.DYNAMODB_TABLE_SHORTEN_URL;
 
 async function insertUrl(shortenedId, originalUrl) {
     const params = {
