@@ -21,7 +21,9 @@ module.exports.handler = async (event) => {
     const { email, mobile, fname, lname } = value;
 
     // 2. Check if user exists
+    console.log("Checking if user exists", email);
     const existingUser = await getUserByEmail(email);
+    console.log("Existing user", existingUser);
     if (existingUser) {
       return {
         statusCode: 409,
@@ -47,7 +49,9 @@ module.exports.handler = async (event) => {
     };
 
     // 4. Save user
+    console.log("Creating new user", user);
     await createUser(user);
+    console.log("User created successfully");
 
     // 5. Send OTPs
     await sendEmailOTP(email, emailOTP);

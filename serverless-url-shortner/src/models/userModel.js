@@ -5,9 +5,13 @@ const USERS_TABLE = process.env.DYNAMODB_TABLE_USERS;
 async function getUserByEmail(email) {
   const params = {
     TableName: USERS_TABLE,
-    Key: { email },
+    IndexName: "EmailIndex",
+    KeyConditionExpression: "email = :email",
+    ExpressionAttributeValues: {
+      ":email": email,
+    },
   };
-  const result = await docClient.get(params).promise();
+  const result = await docClient.query(params).promise();
   return result.Item;
 }
 
