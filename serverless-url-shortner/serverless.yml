@@ -8,7 +8,8 @@ provider:
   region: us-east-1 # Change if needed
   stage: ${opt:stage, 'dev'}
   environment:
-    DYNAMODB_TABLE: ${env:DYNAMODB_TABLE}
+    DYNAMODB_TABLE_SHORTEN_URL: ${env:DYNAMODB_TABLE_SHORTEN_URL}
+    DYNAMODB_TABLE_USERS: ${env:DYNAMODB_TABLE_USERS}
     SHORT_BASE_URL: ${env:SHORT_BASE_URL}
   iamRoleStatements:
     - Effect: Allow
@@ -20,7 +21,20 @@ provider:
         - dynamodb:GetItem
         - dynamodb:Query
         - dynamodb:UpdateItem
-      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE}"
+        - dynamodb:Scan
+        - sns:Publish
+      Resource: 
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_SHORTEN_URL}"
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_USERS}"
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_USERS}/index/EmailIndex"
 
 plugins:
   - serverless-offline
@@ -38,13 +52,19 @@ functions:
       - httpApi:
           method: GET
           path: /{shortId}
+  signup:
+    handler: src/handlers/auth/signup.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/signup
 
 resources:
   Resources:
     ShortUrlsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${env:DYNAMODB_TABLE}
+        TableName: ${env:DYNAMODB_TABLE_SHORTEN_URL}
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
@@ -52,5 +72,28 @@ resources:
           - AttributeName: id
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE_USERS}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S 
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: EmailIndex
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST # or use ProvisionedThroughput for fine-tuned control
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: false # Set to true if you want to auto-expire items
 
 
