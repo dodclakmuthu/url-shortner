@@ -1,9 +1,12 @@
 const signupSchema = require("../../validators/signupValidator");
 const { getUserByEmail, createUser } = require("../../models/userModel");
 const generateOTP = require("../../utils/generateOTP");
-const { sendEmailOTP } = require("../../services/emailService");
-const { sendMobileOTP } = require("../../services/smsService");
+const {createEmailService} = require("../../services/email/EmailServiceFactory");
+const {createSmsService} = require("../../services/sms/SmsServiceFactory");
 const { v4: uuidv4 } = require("uuid");
+
+const smsService = createSmsService();
+const emailService = createEmailService();
 
 module.exports.handler = async (event) => {
   try {
@@ -54,8 +57,8 @@ module.exports.handler = async (event) => {
     console.log("User created successfully");
 
     // 5. Send OTPs
-    await sendEmailOTP(email, emailOTP);
-    await sendMobileOTP(mobile, mobileOTP);
+    await smsService.sendOtp(mobile, mobileOTP);
+    // await emailService.sendOtp(email, emailOTP);
 
     return {
       statusCode: 201,

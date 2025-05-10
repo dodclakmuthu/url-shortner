@@ -22,9 +22,19 @@ provider:
         - dynamodb:Query
         - dynamodb:UpdateItem
         - dynamodb:Scan
+        - sns:Publish
       Resource: 
         - "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_SHORTEN_URL}"
         - "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_USERS}"
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/${env:DYNAMODB_TABLE_USERS}/index/EmailIndex"
 
 plugins:
   - serverless-offline
